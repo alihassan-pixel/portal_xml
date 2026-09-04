@@ -1,14 +1,14 @@
 {
   "macos": {
     "version": "1.0.31",
-    "url": "https://github.com/alihassan143/portal_xml/raw/refs/heads/main/portalapp.dmg"
+    "url": "https://github.com/alihassan-pixel/portal_xml/raw/refs/heads/main/portalapp.dmg"
   },
   "windows": {
     "version": "1.0.31",
-    "url": "https://github.com/alihassan143/portal_xml/raw/refs/heads/main/attendace_app-1.0.31+1-windows-setup.exe"
+    "url": "https://github.com/alihassan-pixel/portal_xml/raw/refs/heads/main/attendace_app-1.0.31+1-windows-setup.exe"
   },
   "linux": {
     "version": "1.0.31",
-    "url": "https://github.com/alihassan143/portal_xml/raw/refs/heads/main/attendace_app.run"
+    "url": "https://github.com/alihassan-pixel/portal_xml/raw/refs/heads/main/attendace_app.run"
   }
 }
