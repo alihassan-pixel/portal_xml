@@ -1,0 +1,76 @@
+# Import a large file into `main` from a URL, downloading on GitHub's side so
+# nothing big has to be pushed from a laptop. Handles direct links and
+# WeTransfer links (via transferwee). Trigger:
+#
+#   gh workflow run import.yml -R alihassan-pixel/portal_xml \
+#     -f url="https://..." -f path="portalapp.dmg"
+name: Import file into main
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Download URL (direct link or WeTransfer link)"
+        required: true
+      path:
+        description: "Destination path in the repo (e.g. portalapp.dmg)"
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: import-main
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download
+        env:
+          URL: ${{ inputs.url }}
+          DEST: ${{ inputs.path }}
+        run: |
+          set -euo pipefail
+          mkdir -p dl && cd dl
+          case "$URL" in
+            *wetransfer.com*|*we.tl*)
+              pip install -q transferwee
+              transferwee download "$URL"
+              ;;
+            *)
+              curl -fL --retry 5 --retry-all-errors -o "$(basename "$DEST")" "$URL"
+              ;;
+          esac
+          # WeTransfer delivers multi-file transfers as a zip: unpack it,
+          # unless the destination itself is a zip.
+          if ls *.zip >/dev/null 2>&1 && [[ "$DEST" != *.zip ]]; then
+            unzip -oq ./*.zip && rm -f ./*.zip
+          fi
+          # Exactly one file must remain; that's what gets committed as $DEST.
+          f=$(find . -type f | head -n 1)
+          n=$(find . -type f | wc -l)
+          if [ "$n" -ne 1 ]; then
+            echo "expected exactly one downloaded file, got $n:"; find . -type f; exit 1
+          fi
+          mkdir -p "$(dirname "../$DEST")"
+          mv "$f" "../$DEST"
+          cd .. && rm -rf dl
+          ls -la "$DEST"
+
+      - name: Commit and push
+        env:
+          DEST: ${{ inputs.path }}
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- "$DEST"
+          if git diff --cached --quiet; then
+            echo "$DEST unchanged; nothing to commit"; exit 0
+          fi
+          git commit -m "Import $DEST"
+          git push origin HEAD:main
