@@ -22,22 +22,33 @@ file from a URL and commits it to `main`.
 1. Put the build somewhere reachable by URL — a WeTransfer link
    (`we.tl/…` or `wetransfer.com/downloads/…`, **one file per transfer**) or
    any direct download link.
-2. Run:
+2. Trigger the download. Replace `<URL>` with your link and pick the `path`
+   that matches the platform. `<URL>` may be a WeTransfer link or any direct
+   download link.
+
+   ```sh
+   # macOS
+   gh workflow run import.yml -R alihassan-pixel/portal_xml \
+     -f url="<URL>" -f path="portalapp.dmg"
+
+   # Linux
+   gh workflow run import.yml -R alihassan-pixel/portal_xml \
+     -f url="<URL>" -f path="attendace_app.run"
+
+   # Windows (use the new version in the filename)
+   gh workflow run import.yml -R alihassan-pixel/portal_xml \
+     -f url="<URL>" -f path="attendace_app-1.0.33+1-windows-setup.exe"
+   ```
+
+   `path` is where the file lands in the repo. An existing file at that path is
+   replaced; identical bytes are skipped.
+
+3. Trigger and watch it finish in one go (usually well under a minute):
 
    ```sh
    gh workflow run import.yml -R alihassan-pixel/portal_xml \
-     -f url="https://we.tl/t-xxxxxxxx" \
-     -f path="portalapp.dmg"
-   ```
-
-   `path` is where the file lands in the repo, e.g. `portalapp.dmg`,
-   `attendace_app.run` or `attendace_app-1.0.33+1-windows-setup.exe`.
-   An existing file at that path is replaced; identical bytes are skipped.
-
-3. Watch it finish (usually well under a minute):
-
-   ```sh
-   gh run watch -R alihassan-pixel/portal_xml
+     -f url="<URL>" -f path="portalapp.dmg" &&
+     sleep 3 && gh run watch -R alihassan-pixel/portal_xml
    ```
 
 4. Delete the previous version's installer if its filename changed (e.g. the
