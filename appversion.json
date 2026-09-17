@@ -4,11 +4,11 @@
     "url": "https://github.com/alihassan-pixel/portal_xml/raw/refs/heads/main/portalapp.dmg"
   },
   "windows": {
-    "version": "1.0.31",
+    "version": "1.0.32",
     "url": "https://github.com/alihassan-pixel/portal_xml/raw/refs/heads/main/attendace_app-1.0.32+1-windows-setup.exe"
   },
   "linux": {
-    "version": "1.0.31",
+    "version": "1.0.32",
     "url": "https://github.com/alihassan-pixel/portal_xml/raw/refs/heads/main/attendace_app.run"
   }
 }
