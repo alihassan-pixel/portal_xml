@@ -1,6 +1,6 @@
 # Import a large file into `main` from a URL, downloading on GitHub's side so
 # nothing big has to be pushed from a laptop. Handles direct links and
-# WeTransfer links (via transferwee). Trigger:
+# WeTransfer links (resolved through their public API). Trigger:
 #
 #   gh workflow run import.yml -R alihassan-pixel/portal_xml \
 #     -f url="https://..." -f path="portalapp.dmg"
@@ -38,8 +38,19 @@ jobs:
           mkdir -p dl && cd dl
           case "$URL" in
             *wetransfer.com*|*we.tl*)
-              pip install -q transferwee
-              transferwee download "$URL"
+              # Resolve the share page to a signed direct link (valid ~10 min),
+              # then fetch it like any other URL.
+              UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/128 Safari/537.36"
+              final=$(curl -sIL -A "$UA" -o /dev/null -w '%{url_effective}' "$URL")
+              tid=$(printf '%s' "$final" | sed -nE 's#.*/downloads/([0-9a-f]+)/([0-9a-f]+).*#\1#p')
+              hash=$(printf '%s' "$final" | sed -nE 's#.*/downloads/([0-9a-f]+)/([0-9a-f]+).*#\2#p')
+              [ -n "$tid" ] && [ -n "$hash" ] || { echo "could not parse transfer id from $final"; exit 1; }
+              direct=$(curl -sf -A "$UA" -X POST "https://wetransfer.com/api/v4/transfers/$tid/download" \
+                -H "Content-Type: application/json" \
+                -d "{\"security_hash\":\"$hash\",\"intent\":\"entire_transfer\"}" | jq -r '.direct_link // empty')
+              [ -n "$direct" ] || { echo "WeTransfer API returned no direct_link"; exit 1; }
+              name=$(printf '%s' "$direct" | sed -E 's#\?.*##; s#.*/##')
+              curl -fL --retry 5 --retry-all-errors -A "$UA" -o "$name" "$direct"
               ;;
             *)
               curl -fL --retry 5 --retry-all-errors -o "$(basename "$DEST")" "$URL"
