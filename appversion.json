@@ -8,7 +8,7 @@
     "url": "https://github.com/alihassan-pixel/portal_xml/raw/refs/heads/main/attendace_app-1.0.33+1-windows-setup.exe"
   },
   "linux": {
-    "version": "1.0.32",
+    "version": "1.0.33",
     "url": "https://github.com/alihassan-pixel/portal_xml/raw/refs/heads/main/attendace_app.run"
   }
 }
